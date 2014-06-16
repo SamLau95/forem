@@ -60,42 +60,44 @@ module Forem
     end
 
     def decorate_admin_class!
-      Forem.admin_class.class_eval do
-        extend Forem::Autocomplete
-        include Forem::DefaultPermissions
+      if Forem.admin_class
+        Forem.admin_class.class_eval do
+          extend Forem::Autocomplete
+          include Forem::DefaultPermissions
 
-        has_many :forem_posts, as: :postable, class_name: 'Forem::Post'
-        has_many :forem_topics, as: :topicable, class_name: 'Forem::Topic'
-        has_many :forem_memberships, as: :membershipable, class_name: 'Forem::Membership'
-        has_many :forem_groups, :through => :forem_memberships, :class_name => "Forem::Group", :source => :group
+          has_many :forem_posts, as: :postable, class_name: 'Forem::Post'
+          has_many :forem_topics, as: :topicable, class_name: 'Forem::Topic'
+          has_many :forem_memberships, as: :membershipable, class_name: 'Forem::Membership'
+          has_many :forem_groups, :through => :forem_memberships, :class_name => "Forem::Group", :source => :group
 
-        def forem_moderate_posts?
-          false
+          def forem_moderate_posts?
+            false
+          end
+          alias_method :forem_needs_moderation?, :forem_moderate_posts?
+
+          def forem_approved_to_post?
+            true
+          end
+
+          def forem_spammer?
+            false
+          end
+
+          def forem_admin?
+            true
+          end
+
+          # Using +to_s+ by default for backwards compatibility
+          def forem_name
+            to_s
+          end unless method_defined? :forem_name
+
+          # Using +email+ by default for backwards compatibility. This attribute
+          # it's optional
+          def forem_email
+            try :email
+          end unless method_defined? :forem_email
         end
-        alias_method :forem_needs_moderation?, :forem_moderate_posts?
-
-        def forem_approved_to_post?
-          true
-        end
-
-        def forem_spammer?
-          false
-        end
-
-        def forem_admin?
-          true
-        end
-
-        # Using +to_s+ by default for backwards compatibility
-        def forem_name
-          to_s
-        end unless method_defined? :forem_name
-
-        # Using +email+ by default for backwards compatibility. This attribute
-        # it's optional
-        def forem_email
-          try :email
-        end unless method_defined? :forem_email
       end
     end
 

@@ -5,7 +5,7 @@ describe Forem::Subscription do
     before(:each) do
       Forem::Topic.any_instance.stub(:set_first_post_user)
       Forem::Topic.any_instance.stub(:user).and_return(stub_model(User))
-      Forem::Topic.any_instance.stub(:user_id).and_return(1)
+      Forem::Topic.any_instance.stub(:topicable_id).and_return(1)
     end
 
     let(:attributes) do

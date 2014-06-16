@@ -12,7 +12,7 @@ require 'sanitize'
 require 'decorators'
 
 module Forem
-  mattr_accessor :base_path, :user_class, :formatter,
+  mattr_accessor :base_path, :user_class, :admin_class, :formatter,
                  :default_gravatar, :default_gravatar_image, :avatar_user_method,
                  :user_profile_links, :email_from_address, :autocomplete_field,
                  :per_page, :sign_in_path, :moderate_first_post, :layout
@@ -28,9 +28,9 @@ module Forem
         extend Forem::Autocomplete
         include Forem::DefaultPermissions
 
-        has_many :forem_posts, :class_name => "Forem::Post", :foreign_key => "user_id"
-        has_many :forem_topics, :class_name => "Forem::Topic", :foreign_key => "user_id"
-        has_many :forem_memberships, :class_name => "Forem::Membership", :foreign_key => "member_id"
+        has_many :forem_posts, as: :postable
+        has_many :forem_topics, as: :topicable
+        has_many :forem_memberships, as: :membershipable
         has_many :forem_groups, :through => :forem_memberships, :class_name => "Forem::Group", :source => :group
 
         def forem_moderate_posts?
@@ -44,6 +44,46 @@ module Forem
 
         def forem_spammer?
           forem_state == 'spam'
+        end
+
+        # Using +to_s+ by default for backwards compatibility
+        def forem_name
+          to_s
+        end unless method_defined? :forem_name
+
+        # Using +email+ by default for backwards compatibility. This attribute
+        # it's optional
+        def forem_email
+          try :email
+        end unless method_defined? :forem_email
+      end
+    end
+
+    def decorate_admin_class!
+      Forem.admin_class.class_eval do
+        extend Forem::Autocomplete
+        include Forem::DefaultPermissions
+
+        has_many :forem_posts, as: :postable
+        has_many :forem_topics, as: :topicable
+        has_many :forem_memberships, as: :membershipable
+        has_many :forem_groups, :through => :forem_memberships, :class_name => "Forem::Group", :source => :group
+
+        def forem_moderate_posts?
+          false
+        end
+        alias_method :forem_needs_moderation?, :forem_moderate_posts?
+
+        def forem_approved_to_post?
+          true
+        end
+
+        def forem_spammer?
+          false
+        end
+
+        def forem_admin?
+          true
         end
 
         # Using +to_s+ by default for backwards compatibility
@@ -81,6 +121,19 @@ module Forem
           Object.const_get(@@user_class)
         rescue NameError
           @@user_class.constantize
+        end
+      end
+    end
+
+    def admin_class
+      if @@admin_class.is_a?(Class)
+        raise "You can no longer set Forem.admin_class to be a class. Please use a string instead.\n\n " +
+              "See https://github.com/radar/forem/issues/88 for more information."
+      elsif @@admin_class.is_a?(String)
+        begin
+          Object.const_get(@@admin_class)
+        rescue NameError
+          @@admin_class.constantize
         end
       end
     end

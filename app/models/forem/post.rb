@@ -19,7 +19,9 @@ module Forem
     attr_accessor :moderation_option
 
     belongs_to :topic
-    belongs_to :forem_user, :class_name => Forem.user_class.to_s, :foreign_key => :user_id
+    belongs_to :postable, polymorphic: true
+    alias_method :forem_user, :postable
+    alias_method :forem_user=, :postable=
     belongs_to :reply_to, :class_name => "Post"
 
     has_many :replies, :class_name  => "Post",

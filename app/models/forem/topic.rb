@@ -24,7 +24,9 @@ module Forem
     friendly_id :subject, :use => [:slugged, :finders]
 
     belongs_to :forum
-    belongs_to :forem_user, :class_name => Forem.user_class.to_s, :foreign_key => :user_id
+    belongs_to :topicable, polymorphic: true
+    alias_method :forem_user, :topicable
+    alias_method :forem_user=, :topicable=
     has_many   :subscriptions
     has_many   :posts, -> { order "forem_posts.created_at ASC"}, :dependent => :destroy
     accepts_nested_attributes_for :posts
@@ -68,7 +70,7 @@ module Forem
       def approved_or_pending_review_for(user)
         if user
           where("forem_topics.state = ? OR " +
-                "(forem_topics.state = ? AND forem_topics.user_id = ?)",
+                "(forem_topics.state = ? AND forem_topics.topicable_id = ?)",
                  'approved', 'pending_review', user.id)
         else
           approved
@@ -108,7 +110,7 @@ module Forem
     end
 
     def subscribe_poster
-      subscribe_user(user_id)
+      subscribe_user(topicable_id)
     end
 
     def subscribe_user(subscriber_id)

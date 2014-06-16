@@ -6,5 +6,6 @@ class CreateForemMemberships < ActiveRecord::Migration
     end
 
     add_index :forem_memberships, :group_id
+    add_index :forem_memberships, [:membershipable_id, :membershipable_type], name: 'membershipable_index'
   end
 end

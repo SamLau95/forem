@@ -28,9 +28,9 @@ module Forem
         extend Forem::Autocomplete
         include Forem::DefaultPermissions
 
-        has_many :forem_posts, as: :postable
-        has_many :forem_topics, as: :topicable
-        has_many :forem_memberships, as: :membershipable
+        has_many :forem_posts, as: :postable, class_name: 'Forem::Post'
+        has_many :forem_topics, as: :topicable, class_name: 'Forem::Topic'
+        has_many :forem_memberships, as: :membershipable, class_name: 'Forem::Membership'
         has_many :forem_groups, :through => :forem_memberships, :class_name => "Forem::Group", :source => :group
 
         def forem_moderate_posts?
@@ -64,9 +64,9 @@ module Forem
         extend Forem::Autocomplete
         include Forem::DefaultPermissions
 
-        has_many :forem_posts, as: :postable
-        has_many :forem_topics, as: :topicable
-        has_many :forem_memberships, as: :membershipable
+        has_many :forem_posts, as: :postable, class_name: 'Forem::Post'
+        has_many :forem_topics, as: :topicable, class_name: 'Forem::Topic'
+        has_many :forem_memberships, as: :membershipable, class_name: 'Forem::Membership'
         has_many :forem_groups, :through => :forem_memberships, :class_name => "Forem::Group", :source => :group
 
         def forem_moderate_posts?
